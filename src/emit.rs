@@ -1,3 +1,5 @@
+use std::sync::LazyLock;
+
 use crate::parse::Changelog;
 use regex::Regex;
 
@@ -6,6 +8,10 @@ pub enum Format {
     Bbcode,
     Html,
 }
+
+static BOLD_ITALIC: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"\*\*\*(.*?)\*\*\*").unwrap());
+static BOLD: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"\*\*(.*?)\*\*").unwrap());
+static ITALIC: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"\*(.*?)\*").unwrap());
 
 pub fn emit(changelog: Changelog, format: Format) {
     match format {
@@ -87,18 +93,17 @@ fn indent(indentation: usize) -> String {
 fn replace_inline_formatting(text: &str, format: Format) -> String {
     let patterns = [
         (
-            r"\*\*\*(.*?)\*\*\*",
+            &BOLD_ITALIC,
             "[b][i]$1[/i][/b]",
             "<strong><em>$1</em></strong>",
         ),
-        (r"\*\*(.*?)\*\*", "[b]$1[/b]", "<strong>$1</strong>"),
-        (r"\*(.*?)\*", "[i]$1[/i]", "<em>$1</em>"),
+        (&BOLD, "[b]$1[/b]", "<strong>$1</strong>"),
+        (&ITALIC, "[i]$1[/i]", "<em>$1</em>"),
     ];
 
     let mut result = text.to_string();
 
-    for (pattern, steam_replacement, html_replacement) in patterns {
-        let re = Regex::new(pattern).unwrap();
+    for (re, steam_replacement, html_replacement) in patterns {
         let replacement = match format {
             Format::Bbcode => steam_replacement,
             Format::Html => html_replacement,
