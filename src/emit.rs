@@ -17,6 +17,7 @@ pub fn emit(changelog: Changelog, format: Format) {
 fn emit_bbcode(changelog: Changelog) {
     let mut has_indented = false;
     let mut output = String::new();
+    output.push_str(&format!("[h1]{}[/h1]\n", changelog.title));
     output.push_str("[list]\n");
 
     for bulletin in changelog.bulletins {
@@ -40,6 +41,7 @@ fn emit_bbcode(changelog: Changelog) {
 
 fn emit_html(changelog: Changelog) {
     let mut output = String::new();
+    output.push_str(&format!("<h2>{}</h2>\n", changelog.title));
     output.push_str("<ul>\n");
 
     let mut indentation = 0;
